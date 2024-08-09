@@ -82,6 +82,9 @@ function getLearnerData(course, ag, submissions) {
     if(ag.course_id!=course.id){
       throw "Error: assignment course id don't match course id"
     }
+    if(ag.course_id!==course.id){
+      throw "Error: ID data type doesn't match"
+    }
     else{
       let today = new Date();
       let notdue=false;
@@ -107,8 +110,9 @@ function getLearnerData(course, ag, submissions) {
         }
       }
 
-      let avgByAss1=[];
-      let avgByAss2=[];
+      let avgByAss1=[];//a array to hold the assignments grade for id 125
+      let avgByAss2=[];//a array to hold the assignments grade for id 132
+      let totalpoint=[];
 
       for(let i=0;i<learnerID1.length;i++){
          let assignmentsDate = new Date(ag.assignments[i].due_at);
@@ -128,20 +132,27 @@ function getLearnerData(course, ag, submissions) {
          avgByAss2.push(average(ag.assignments[i].points_possible,learnerID2[i].submission.score,
          SubmitOnTime(ag.assignments[i].due_at,learnerID2[i].submission.submitted_at)));
        }
-       
-     }
+      }
+
+      totalpoint.push(totalAverage(ag.assignments[0].points_possible, learnerID1[0].submission.score,
+        SubmitOnTime(ag.assignments[0].due_at, learnerID1[0].submission.submitted_at),ag.assignments[1].points_possible, learnerID1[1].submission.score,
+        SubmitOnTime(ag.assignments[1].due_at, learnerID1[1].submission.submitted_at)));
+
+      totalpoint.push(totalAverage(ag.assignments[0].points_possible, learnerID2[0].submission.score,
+          SubmitOnTime(ag.assignments[0].due_at, learnerID2[0].submission.submitted_at),ag.assignments[1].points_possible, learnerID2[1].submission.score,
+          SubmitOnTime(ag.assignments[1].due_at, learnerID2[1].submission.submitted_at)));
       const result = [
       {
         id: learnerID1[0].learner_id,
-        avg: 0.985, // (47 + 150) / (50 + 150)
+        avg: totalpoint[0], // (47 + 150) / (50 + 150)
         1: avgByAss1[0], // 47 / 50 = 0.94
         2: avgByAss1[1] // 150 / 150 = 1
       },
       {
         id: learnerID2[0].learner_id,
-        avg: 0.82, // (39 + 125) / (50 + 150)
+        avg: totalpoint[1], // (39 + 125) / (50 + 150)
         1: avgByAss2[0], // 39 / 50 = .78
-        2: avgByAss2[1] // late: (140 - 15) / 150 = .0833
+        2: avgByAss2[1] // late: (140 - 15) / 150 = 0.833
       }
       ];
       return result;
@@ -150,6 +161,28 @@ function getLearnerData(course, ag, submissions) {
         console.log(error);
     }
     //return result;
+}
+
+function totalAverage(ag1,sub1,sot,ag2,sub2,sot2){//ag1 ag2 sub1 sub2 sot sot2
+  let score=0;
+  if(sot==true){
+    score= score+=sub1;
+  }else{
+    let late=ag1/10
+    score+=(sub1-late);
+  }
+
+  if(sot2==true){
+    score= score+=sub2;
+  }else{
+    let late=ag2/10
+    score+=(sub2-late);
+  }
+
+  let total= ag1+ag2;
+  console.log(total);
+  console.log();
+  return (score/total).toFixed(3);
 }
 
 function average(ag,sub,sot){
@@ -162,7 +195,7 @@ function average(ag,sub,sot){
     return score/totalPoint;
   }else{
     let late=totalPoint/10;
-    return (score-late)/totalPoint;
+    return ((score-late)/totalPoint).toFixed(3);
   }
 }
 function SubmitOnTime(ag,sub){//check if assignment was hand in before due date or on due date or late
