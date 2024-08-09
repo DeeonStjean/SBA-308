@@ -180,8 +180,6 @@ function totalAverage(ag1,sub1,sot,ag2,sub2,sot2){//ag1 ag2 sub1 sub2 sot sot2
   }
 
   let total= ag1+ag2;
-  console.log(total);
-  console.log();
   return (score/total).toFixed(3);
 }
 
